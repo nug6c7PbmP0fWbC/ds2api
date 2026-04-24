@@ -90,6 +90,14 @@ func TestLoad_CustomValues(t *testing.T) {
 	if cfg.DSPassword != "secret" {
 		t.Errorf("expected DSPassword 'secret', got %s", cfg.DSPassword)
 	}
+	// Verify LOG_LEVEL custom value is loaded
+	if cfg.LogLevel != "debug" {
+		t.Errorf("expected LogLevel 'debug', got %s", cfg.LogLevel)
+	}
+	// Verify API_BASE_PATH custom value is loaded
+	if cfg.APIBasePath != "/api/v2" {
+		t.Errorf("expected APIBasePath '/api/v2', got %s", cfg.APIBasePath)
+	}
 }
 
 func TestLoad_MissingDSHost(t *testing.T) {
@@ -113,8 +121,8 @@ func TestLoad_InvalidServerPort(t *testing.T) {
 	}
 }
 
+// TestLoad_InvalidDSPort verifies that a non-numeric DS_PORT value returns an error.
 func TestLoad_InvalidDSPort(t *testing.T) {
-	// Ensure an invalid DS_PORT value also returns an error
 	setEnv(t, map[string]string{
 		"DS_HOST": "nas.home",
 		"DS_PORT": "not-a-number",
