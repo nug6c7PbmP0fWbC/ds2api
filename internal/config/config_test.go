@@ -24,8 +24,9 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.ServerPort != 8080 {
 		t.Errorf("expected ServerPort 8080, got %d", cfg.ServerPort)
 	}
-	if cfg.DSPort != 5001 {
-		t.Errorf("expected DSPort 5001, got %d", cfg.DSPort)
+	// DS_PORT default is 5000 (HTTP) rather than 5001 (HTTPS) for my local setup
+	if cfg.DSPort != 5000 {
+		t.Errorf("expected DSPort 5000, got %d", cfg.DSPort)
 	}
 	if cfg.LogLevel != "info" {
 		t.Errorf("expected LogLevel 'info', got %s", cfg.LogLevel)
