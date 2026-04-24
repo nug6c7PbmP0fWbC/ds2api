@@ -106,6 +106,6 @@ func TestLoad_MissingDSHost(t *testing.T) {
 
 	_, err := Load()
 	if err == nil {
-		t.Fatal("expected error when DS_HOST is not set, got nil")
+		t.Fatal("expected an error when DS_HOST is missing, got nil")
 	}
 }
