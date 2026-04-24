@@ -38,6 +38,10 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.DSName != "" {
 		t.Errorf("expected DSName to be empty by default, got %s", cfg.DSName)
 	}
+	// Verify DSHost is correctly stored from env
+	if cfg.DSHost != "synology.local" {
+		t.Errorf("expected DSHost 'synology.local', got %s", cfg.DSHost)
+	}
 }
 
 func TestLoad_CustomValues(t *testing.T) {
@@ -70,6 +74,10 @@ func TestLoad_CustomValues(t *testing.T) {
 	if cfg.DSName != "mynas" {
 		t.Errorf("expected DSName 'mynas', got %s", cfg.DSName)
 	}
+	// Verify DSPort custom value is loaded
+	if cfg.DSPort != 5002 {
+		t.Errorf("expected DSPort 5002, got %d", cfg.DSPort)
+	}
 }
 
 func TestLoad_MissingDSHost(t *testing.T) {
@@ -90,5 +98,18 @@ func TestLoad_InvalidServerPort(t *testing.T) {
 	_, err := Load()
 	if err == nil {
 		t.Fatal("expected error for invalid SERVER_PORT, got nil")
+	}
+}
+
+func TestLoad_InvalidDSPort(t *testing.T) {
+	// Ensure an invalid DS_PORT value also returns an error
+	setEnv(t, map[string]string{
+		"DS_HOST": "nas.home",
+		"DS_PORT": "not-a-number",
+	})
+
+	_, err := Load()
+	if err == nil {
+		t.Fatal("expected error for invalid DS_PORT, got nil")
 	}
 }
