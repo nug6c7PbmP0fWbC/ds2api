@@ -42,6 +42,14 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.DSHost != "synology.local" {
 		t.Errorf("expected DSHost 'synology.local', got %s", cfg.DSHost)
 	}
+	// Verify DSUser defaults to empty string when not set
+	if cfg.DSUser != "" {
+		t.Errorf("expected DSUser to be empty by default, got %s", cfg.DSUser)
+	}
+	// Verify DSPassword defaults to empty string when not set
+	if cfg.DSPassword != "" {
+		t.Errorf("expected DSPassword to be empty by default, got %s", cfg.DSPassword)
+	}
 }
 
 func TestLoad_CustomValues(t *testing.T) {
@@ -77,6 +85,10 @@ func TestLoad_CustomValues(t *testing.T) {
 	// Verify DSPort custom value is loaded
 	if cfg.DSPort != 5002 {
 		t.Errorf("expected DSPort 5002, got %d", cfg.DSPort)
+	}
+	// Verify DSPassword custom value is loaded
+	if cfg.DSPassword != "secret" {
+		t.Errorf("expected DSPassword 'secret', got %s", cfg.DSPassword)
 	}
 }
 
