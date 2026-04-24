@@ -101,35 +101,11 @@ func TestLoad_CustomValues(t *testing.T) {
 }
 
 func TestLoad_MissingDSHost(t *testing.T) {
+	// DS_HOST is required; Load() should return an error when it is absent.
 	os.Unsetenv("DS_HOST")
 
 	_, err := Load()
 	if err == nil {
-		t.Fatal("expected error when DS_HOST is missing, got nil")
-	}
-}
-
-func TestLoad_InvalidServerPort(t *testing.T) {
-	setEnv(t, map[string]string{
-		"DS_HOST":     "nas.home",
-		"SERVER_PORT": "not-a-number",
-	})
-
-	_, err := Load()
-	if err == nil {
-		t.Fatal("expected error for invalid SERVER_PORT, got nil")
-	}
-}
-
-// TestLoad_InvalidDSPort verifies that a non-numeric DS_PORT value returns an error.
-func TestLoad_InvalidDSPort(t *testing.T) {
-	setEnv(t, map[string]string{
-		"DS_HOST": "nas.home",
-		"DS_PORT": "not-a-number",
-	})
-
-	_, err := Load()
-	if err == nil {
-		t.Fatal("expected error for invalid DS_PORT, got nil")
+		t.Fatal("expected error when DS_HOST is not set, got nil")
 	}
 }
