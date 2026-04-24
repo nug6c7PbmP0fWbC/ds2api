@@ -34,6 +34,10 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.APIBasePath != "/api/v1" {
 		t.Errorf("expected APIBasePath '/api/v1', got %s", cfg.APIBasePath)
 	}
+	// Verify DSName defaults to empty string when not set
+	if cfg.DSName != "" {
+		t.Errorf("expected DSName to be empty by default, got %s", cfg.DSName)
+	}
 }
 
 func TestLoad_CustomValues(t *testing.T) {
@@ -61,6 +65,10 @@ func TestLoad_CustomValues(t *testing.T) {
 	}
 	if cfg.DSUser != "admin" {
 		t.Errorf("expected DSUser 'admin', got %s", cfg.DSUser)
+	}
+	// Also verify DSName is picked up correctly
+	if cfg.DSName != "mynas" {
+		t.Errorf("expected DSName 'mynas', got %s", cfg.DSName)
 	}
 }
 
