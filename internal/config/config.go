@@ -1,156 +1,69 @@
 package config
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"fmt"
-	"strings"
+	"os"
+	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
+// Config holds all application configuration loaded from environment variables.
 type Config struct {
-	Keys             []string           `json:"keys,omitempty"`
-	APIKeys          []APIKey           `json:"api_keys,omitempty"`
-	Accounts         []Account          `json:"accounts,omitempty"`
-	Proxies          []Proxy            `json:"proxies,omitempty"`
-	ClaudeMapping    map[string]string  `json:"claude_mapping,omitempty"`
-	ClaudeModelMap   map[string]string  `json:"claude_model_mapping,omitempty"`
-	ModelAliases     map[string]string  `json:"model_aliases,omitempty"`
-	Admin            AdminConfig        `json:"admin,omitempty"`
-	Runtime          RuntimeConfig      `json:"runtime,omitempty"`
-	Compat           CompatConfig       `json:"compat,omitempty"`
-	Responses        ResponsesConfig    `json:"responses,omitempty"`
-	Embeddings       EmbeddingsConfig   `json:"embeddings,omitempty"`
-	AutoDelete       AutoDeleteConfig   `json:"auto_delete"`
-	HistorySplit     HistorySplitConfig `json:"history_split"`
-	VercelSyncHash   string             `json:"_vercel_sync_hash,omitempty"`
-	VercelSyncTime   int64              `json:"_vercel_sync_time,omitempty"`
-	AdditionalFields map[string]any     `json:"-"`
+	ServerPort  int
+	DSHost      string
+	DSPort      int
+	DSUser      string
+	DSPassword  string
+	DSName      string
+	LogLevel    string
+	APIBasePath string
 }
 
-type Account struct {
-	Name     string `json:"name,omitempty"`
-	Remark   string `json:"remark,omitempty"`
-	Email    string `json:"email,omitempty"`
-	Mobile   string `json:"mobile,omitempty"`
-	Password string `json:"password,omitempty"`
-	Token    string `json:"token,omitempty"`
-	ProxyID  string `json:"proxy_id,omitempty"`
-}
+// Load reads configuration from environment variables, optionally loading a .env file.
+func Load() (*Config, error) {
+	// Attempt to load .env file; ignore error if not present (e.g., in Docker)
+	_ = godotenv.Load()
 
-type APIKey struct {
-	Key    string `json:"key"`
-	Name   string `json:"name,omitempty"`
-	Remark string `json:"remark,omitempty"`
-}
-
-type Proxy struct {
-	ID       string `json:"id,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Type     string `json:"type,omitempty"`
-	Host     string `json:"host,omitempty"`
-	Port     int    `json:"port,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
-}
-
-func NormalizeProxy(p Proxy) Proxy {
-	p.ID = strings.TrimSpace(p.ID)
-	p.Name = strings.TrimSpace(p.Name)
-	p.Type = strings.ToLower(strings.TrimSpace(p.Type))
-	p.Host = strings.TrimSpace(p.Host)
-	p.Username = strings.TrimSpace(p.Username)
-	p.Password = strings.TrimSpace(p.Password)
-	if p.ID == "" {
-		p.ID = StableProxyID(p)
-	}
-	if p.Name == "" && p.Host != "" && p.Port > 0 {
-		p.Name = fmt.Sprintf("%s:%d", p.Host, p.Port)
-	}
-	return p
-}
-
-func StableProxyID(p Proxy) string {
-	sum := sha1.Sum([]byte(strings.ToLower(strings.TrimSpace(p.Type)) + "|" + strings.ToLower(strings.TrimSpace(p.Host)) + "|" + fmt.Sprintf("%d", p.Port) + "|" + strings.TrimSpace(p.Username)))
-	return "proxy_" + hex.EncodeToString(sum[:6])
-}
-
-func (c *Config) ClearAccountTokens() {
-	if c == nil {
-		return
-	}
-	for i := range c.Accounts {
-		c.Accounts[i].Token = ""
-	}
-}
-
-func (c *Config) NormalizeCredentials() {
-	if c == nil {
-		return
-	}
-	normalizedAPIKeys := normalizeAPIKeys(c.APIKeys)
-	if len(normalizedAPIKeys) > 0 {
-		c.APIKeys = normalizedAPIKeys
-		c.Keys = apiKeysToStrings(c.APIKeys)
-	} else {
-		c.Keys = normalizeKeys(c.Keys)
-		c.APIKeys = apiKeysFromStrings(c.Keys, nil)
+	serverPort, err := envInt("SERVER_PORT", 8080)
+	if err != nil {
+		return nil, fmt.Errorf("invalid SERVER_PORT: %w", err)
 	}
 
-	for i := range c.Accounts {
-		c.Accounts[i].Name = strings.TrimSpace(c.Accounts[i].Name)
-		c.Accounts[i].Remark = strings.TrimSpace(c.Accounts[i].Remark)
+	dsPort, err := envInt("DS_PORT", 5001)
+	if err != nil {
+		return nil, fmt.Errorf("invalid DS_PORT: %w", err)
 	}
-}
 
-// DropInvalidAccounts removes accounts that cannot be addressed by admin APIs
-// (no email and no normalizable mobile). This prevents legacy token-only
-// records from becoming orphaned empty entries after token stripping.
-func (c *Config) DropInvalidAccounts() {
-	if c == nil || len(c.Accounts) == 0 {
-		return
+	cfg := &Config{
+		ServerPort:  serverPort,
+		DSHost:      envStr("DS_HOST", "localhost"),
+		DSPort:      dsPort,
+		DSUser:      envStr("DS_USER", ""),
+		DSPassword:  envStr("DS_PASSWORD", ""),
+		DSName:      envStr("DS_NAME", ""),
+		LogLevel:    envStr("LOG_LEVEL", "info"),
+		APIBasePath: envStr("API_BASE_PATH", "/api/v1"),
 	}
-	kept := make([]Account, 0, len(c.Accounts))
-	for _, acc := range c.Accounts {
-		if acc.Identifier() == "" {
-			continue
-		}
-		kept = append(kept, acc)
+
+	if cfg.DSHost == "" {
+		return nil, fmt.Errorf("DS_HOST must not be empty")
 	}
-	c.Accounts = kept
+
+	return cfg, nil
 }
 
-type CompatConfig struct {
-	WideInputStrictOutput *bool `json:"wide_input_strict_output,omitempty"`
-	StripReferenceMarkers *bool `json:"strip_reference_markers,omitempty"`
+func envStr(key, defaultVal string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return defaultVal
 }
 
-type AdminConfig struct {
-	PasswordHash      string `json:"password_hash,omitempty"`
-	JWTExpireHours    int    `json:"jwt_expire_hours,omitempty"`
-	JWTValidAfterUnix int64  `json:"jwt_valid_after_unix,omitempty"`
-}
-
-type RuntimeConfig struct {
-	AccountMaxInflight        int `json:"account_max_inflight,omitempty"`
-	AccountMaxQueue           int `json:"account_max_queue,omitempty"`
-	GlobalMaxInflight         int `json:"global_max_inflight,omitempty"`
-	TokenRefreshIntervalHours int `json:"token_refresh_interval_hours,omitempty"`
-}
-
-type ResponsesConfig struct {
-	StoreTTLSeconds int `json:"store_ttl_seconds,omitempty"`
-}
-
-type EmbeddingsConfig struct {
-	Provider string `json:"provider,omitempty"`
-}
-
-type AutoDeleteConfig struct {
-	Mode     string `json:"mode,omitempty"`
-	Sessions bool   `json:"sessions,omitempty"`
-}
-
-type HistorySplitConfig struct {
-	Enabled           *bool `json:"enabled,omitempty"`
-	TriggerAfterTurns *int  `json:"trigger_after_turns,omitempty"`
+func envInt(key string, defaultVal int) (int, error) {
+	v := os.Getenv(key)
+	if v == "" {
+		return defaultVal, nil
+	}
+	return strconv.Atoi(v)
 }
