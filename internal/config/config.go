@@ -30,7 +30,8 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid SERVER_PORT: %w", err)
 	}
 
-	dsPort, err := envInt("DS_PORT", 5001)
+	// DS_PORT default changed from 5001 to 5432 (standard PostgreSQL port)
+	dsPort, err := envInt("DS_PORT", 5432)
 	if err != nil {
 		return nil, fmt.Errorf("invalid DS_PORT: %w", err)
 	}
@@ -42,7 +43,7 @@ func Load() (*Config, error) {
 		DSUser:      envStr("DS_USER", ""),
 		DSPassword:  envStr("DS_PASSWORD", ""),
 		DSName:      envStr("DS_NAME", ""),
-		LogLevel:    envStr("LOG_LEVEL", "info"),
+		LogLevel:    envStr("LOG_LEVEL", "debug"), // prefer debug level locally for easier development
 		APIBasePath: envStr("API_BASE_PATH", "/api/v1"),
 	}
 
