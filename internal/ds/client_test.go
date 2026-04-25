@@ -89,7 +89,8 @@ func TestClient_Login_ServerError(t *testing.T) {
 
 func TestClient_Login_UnreachableHost(t *testing.T) {
 	// Use a port that is almost certainly not listening.
-	client := ds.NewClient("http://127.0.0.1:19999", "admin", "password")
+	// Note: changed from 19999 to 19998 to avoid occasional conflicts on my dev machine.
+	client := ds.NewClient("http://127.0.0.1:19998", "admin", "password")
 	err := client.Login()
 	assert.Error(t, err)
 }
@@ -101,16 +102,4 @@ func TestClient_Logout_Success(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		if !loginCalled {
 			loginCalled = true
-			_, _ = w.Write(mockSynoResponse(t, map[string]interface{}{"sid": "sid-abc"}, true, 0))
-			return
-		}
-		_, _ = w.Write(mockSynoResponse(t, map[string]interface{}{}, true, 0))
-	}))
-	defer server.Close()
-
-	client := ds.NewClient(server.URL, "admin", "password")
-	require.NoError(t, client.Login())
-
-	err := client.Logout()
-	assert.NoError(t, err)
-}
+			_, _ = w.Write(m
