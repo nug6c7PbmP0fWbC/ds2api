@@ -54,6 +54,10 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.DSUseHTTPS != false {
 		t.Errorf("expected DSUseHTTPS to be false by default, got %v", cfg.DSUseHTTPS)
 	}
+	// Verify CacheEnabled defaults to false - I don't need caching for my single-user setup
+	if cfg.CacheEnabled != false {
+		t.Errorf("expected CacheEnabled to be false by default, got %v", cfg.CacheEnabled)
+	}
 }
 
 func TestLoad_CustomValues(t *testing.T) {
@@ -105,11 +109,12 @@ func TestLoad_CustomValues(t *testing.T) {
 }
 
 func TestLoad_MissingDSHost(t *testing.T) {
-	// DS_HOST is required; Load() should return an error when it is absent.
+	// DS_HOST is required; omitting it should cause Load() to return an error.
+	// Explicitly unset DS_HOST to simulate a misconfigured environment.
 	os.Unsetenv("DS_HOST")
 
 	_, err := Load()
 	if err == nil {
-		t.Fatal("expected error when DS_HOST is missing, got nil")
+		t.Error("expected error when DS_HOST is missing, got nil")
 	}
 }
