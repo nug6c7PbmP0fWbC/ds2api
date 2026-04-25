@@ -98,7 +98,7 @@ func TestLoad_CustomValues(t *testing.T) {
 	if cfg.DSPort != 5002 {
 		t.Errorf("expected DSPort 5002, got %d", cfg.DSPort)
 	}
-	// Verify DSPassword is loaded correctly
+	// Verify DSPassword custom value is loaded
 	if cfg.DSPassword != "secret" {
 		t.Errorf("expected DSPassword 'secret', got %s", cfg.DSPassword)
 	}
@@ -113,12 +113,12 @@ func TestLoad_CustomValues(t *testing.T) {
 }
 
 func TestLoad_MissingDSHost(t *testing.T) {
-	// DS_HOST is required; omitting it should cause Load() to return an error.
-	// Unset DS_HOST in case a parent test left it in the environment.
+	// DS_HOST is required; Load should return an error when it is absent.
+	// Unset the variable explicitly to make sure the test is hermetic.
 	os.Unsetenv("DS_HOST")
 
 	_, err := Load()
 	if err == nil {
-		t.Error("expected error when DS_HOST is not set, got nil")
+		t.Fatal("expected an error when DS_HOST is not set, got nil")
 	}
 }
