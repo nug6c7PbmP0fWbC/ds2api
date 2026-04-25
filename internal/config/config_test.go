@@ -50,6 +50,10 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.DSPassword != "" {
 		t.Errorf("expected DSPassword to be empty by default, got %s", cfg.DSPassword)
 	}
+	// Verify DSUseHTTPS defaults to false (I always use plain HTTP locally)
+	if cfg.DSUseHTTPS != false {
+		t.Errorf("expected DSUseHTTPS to be false by default, got %v", cfg.DSUseHTTPS)
+	}
 }
 
 func TestLoad_CustomValues(t *testing.T) {
@@ -106,6 +110,6 @@ func TestLoad_MissingDSHost(t *testing.T) {
 
 	_, err := Load()
 	if err == nil {
-		t.Fatal("expected an error when DS_HOST is missing, got nil")
+		t.Fatal("expected error when DS_HOST is missing, got nil")
 	}
 }
