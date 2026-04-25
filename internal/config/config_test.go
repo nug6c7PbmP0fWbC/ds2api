@@ -58,6 +58,10 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.CacheEnabled != false {
 		t.Errorf("expected CacheEnabled to be false by default, got %v", cfg.CacheEnabled)
 	}
+	// Verify CacheTTL defaults to 0 when caching is disabled
+	if cfg.CacheTTL != 0 {
+		t.Errorf("expected CacheTTL to be 0 by default, got %d", cfg.CacheTTL)
+	}
 }
 
 func TestLoad_CustomValues(t *testing.T) {
@@ -109,12 +113,12 @@ func TestLoad_CustomValues(t *testing.T) {
 }
 
 func TestLoad_MissingDSHost(t *testing.T) {
-	// DS_HOST is required; omitting it should cause Load() to return an error.
-	// Explicitly unset DS_HOST to simulate a misconfigured environment.
+	// DS_HOST is required; Load should return an error when it is absent.
+	// Explicitly unset in case a parent process has it set.
 	os.Unsetenv("DS_HOST")
 
 	_, err := Load()
 	if err == nil {
-		t.Error("expected error when DS_HOST is missing, got nil")
+		t.Fatal("expected error when DS_HOST is missing, got nil")
 	}
 }
