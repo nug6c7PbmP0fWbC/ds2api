@@ -43,7 +43,9 @@ func Load() (*Config, error) {
 		DSUser:      envStr("DS_USER", ""),
 		DSPassword:  envStr("DS_PASSWORD", ""),
 		DSName:      envStr("DS_NAME", ""),
-		LogLevel:    envStr("LOG_LEVEL", "debug"), // prefer debug level locally for easier development
+		// Changed default log level to "info" to reduce noise during normal runs;
+		// set LOG_LEVEL=debug in .env to restore verbose output.
+		LogLevel:    envStr("LOG_LEVEL", "info"),
 		APIBasePath: envStr("API_BASE_PATH", "/api/v1"),
 	}
 
