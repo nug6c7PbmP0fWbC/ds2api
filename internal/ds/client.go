@@ -39,7 +39,7 @@ type loginData struct {
 
 // NewClient creates a new DiskStation API client.
 // If skipTLSVerify is true, TLS certificate verification is disabled.
-// Note: increased default timeout to 60s since my NAS can be slow to respond.
+// Note: increased default timeout to 90s since my NAS wakes from sleep and can be very slow to respond.
 func NewClient(host string, port int, username, password string, skipTLSVerify bool) *Client {
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -51,7 +51,7 @@ func NewClient(host string, port int, username, password string, skipTLSVerify b
 		username: username,
 		password: password,
 		httpClient: &http.Client{
-			Timeout:   60 * time.Second,
+			Timeout:   90 * time.Second,
 			Transport: transport,
 		},
 	}
@@ -111,23 +111,3 @@ func (c *Client) get(cgi string, params url.Values, out interface{}) error {
 		return fmt.Errorf("reading response body: %w", err)
 	}
 
-	var ar apiResponse
-	if err := json.Unmarshal(body, &ar); err != nil {
-		return fmt.Errorf("unmarshalling response: %w", err)
-	}
-
-	if !ar.Success {
-		if ar.Error != nil {
-			return fmt.Errorf("api error code: %d", ar.Error.Code)
-		}
-		return fmt.Errorf("api returned unsuccessful response")
-	}
-
-	if out != nil && ar.Data != nil {
-		if err := json.Unmarshal(ar.Data, out); err != nil {
-			return fmt.Errorf("unmarshalling data: %w", err)
-		}
-	}
-
-	return nil
-}
