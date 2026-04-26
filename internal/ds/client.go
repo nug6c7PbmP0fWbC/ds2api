@@ -39,7 +39,8 @@ type loginData struct {
 
 // NewClient creates a new DiskStation API client.
 // If skipTLSVerify is true, TLS certificate verification is disabled.
-// Note: increased default timeout to 90s since my NAS wakes from sleep and can be very slow to respond.
+// Note: increased default timeout to 120s — my NAS takes a while to wake from
+// deep sleep, especially after a power outage. 90s was occasionally not enough.
 func NewClient(host string, port int, username, password string, skipTLSVerify bool) *Client {
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -51,7 +52,7 @@ func NewClient(host string, port int, username, password string, skipTLSVerify b
 		username: username,
 		password: password,
 		httpClient: &http.Client{
-			Timeout:   90 * time.Second,
+			Timeout:   120 * time.Second,
 			Transport: transport,
 		},
 	}
@@ -108,6 +109,4 @@ func (c *Client) get(cgi string, params url.Values, out interface{}) error {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("reading response body: %w", err)
-	}
-
+		return fmt.Errorf("reading re
