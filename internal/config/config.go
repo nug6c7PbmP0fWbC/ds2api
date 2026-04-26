@@ -46,11 +46,17 @@ func Load() (*Config, error) {
 		// Changed default log level to "info" to reduce noise during normal runs;
 		// set LOG_LEVEL=debug in .env to restore verbose output.
 		LogLevel:    envStr("LOG_LEVEL", "info"),
-		APIBasePath: envStr("API_BASE_PATH", "/api/v1"),
+		// Changed default API base path to /api/v2 for my local experiments
+		APIBasePath: envStr("API_BASE_PATH", "/api/v2"),
 	}
 
 	if cfg.DSHost == "" {
 		return nil, fmt.Errorf("DS_HOST must not be empty")
+	}
+
+	// Validate that DSName is set; an empty database name will cause confusing errors downstream.
+	if cfg.DSName == "" {
+		return nil, fmt.Errorf("DS_NAME must not be empty")
 	}
 
 	return cfg, nil
