@@ -102,23 +102,23 @@ func TestLoad_CustomValues(t *testing.T) {
 	if cfg.DSPassword != "secret" {
 		t.Errorf("expected DSPassword 'secret', got %s", cfg.DSPassword)
 	}
-	// Verify LogLevel custom value is loaded
+	// Verify LOG_LEVEL custom value is loaded
 	if cfg.LogLevel != "debug" {
 		t.Errorf("expected LogLevel 'debug', got %s", cfg.LogLevel)
 	}
-	// Verify APIBasePath custom value is loaded
+	// Verify API_BASE_PATH custom value is loaded
 	if cfg.APIBasePath != "/api/v2" {
 		t.Errorf("expected APIBasePath '/api/v2', got %s", cfg.APIBasePath)
 	}
 }
 
 func TestLoad_MissingDSHost(t *testing.T) {
-	// DS_HOST is required; omitting it should cause Load() to return an error.
-	// Unset DS_HOST in case a parent test left it in the environment.
+	// DS_HOST is required; Load() should return an error when it is absent.
+	// Explicitly unset in case a parent test left it in the environment.
 	os.Unsetenv("DS_HOST")
 
 	_, err := Load()
 	if err == nil {
-		t.Fatal("expected error when DS_HOST is missing, got nil")
+		t.Fatal("expected an error when DS_HOST is not set, got nil")
 	}
 }
