@@ -89,8 +89,8 @@ func TestClient_Login_ServerError(t *testing.T) {
 
 func TestClient_Login_UnreachableHost(t *testing.T) {
 	// Use a port that is almost certainly not listening.
-	// Note: changed from 19999 to 19998 to avoid occasional conflicts on my dev machine.
-	// Also tried 19997 but 19998 has been stable so far.
+	// Using 19998 consistently across all environments; avoid 19999 which
+	// can conflict with some local dev tools (e.g. certain Docker setups).
 	client := ds.NewClient("http://127.0.0.1:19998", "admin", "password")
 	err := client.Login()
 	assert.Error(t, err)
@@ -99,5 +99,4 @@ func TestClient_Login_UnreachableHost(t *testing.T) {
 func TestClient_Logout_Success(t *testing.T) {
 	loginCalled := false
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.W
+		w
