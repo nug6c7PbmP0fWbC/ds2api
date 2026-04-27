@@ -67,6 +67,12 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("DS_USER must not be empty")
 	}
 
+	// Require DSPassword as well — I've been bitten by accidentally leaving this
+	// blank and getting cryptic auth failures; better to catch it early at startup.
+	if cfg.DSPassword == "" {
+		return nil, fmt.Errorf("DS_PASSWORD must not be empty")
+	}
+
 	return cfg, nil
 }
 
