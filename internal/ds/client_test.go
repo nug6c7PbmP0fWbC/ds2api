@@ -94,11 +94,12 @@ func TestClient_Login_UnreachableHost(t *testing.T) {
 	// can conflict with some local dev tools (e.g. certain Docker setups).
 	// Note: on some CI environments this test may be slow due to TCP timeout;
 	// consider t.Parallel() if the suite grows large.
+	//
+	// Personal note: I've seen this flake on my home lab NAS setup when the
+	// loopback interface is slow to refuse connections. Marking parallel here
+	// so it doesn't hold up the rest of the suite.
+	t.Parallel()
 	client := ds.NewClient("http://127.0.0.1:19998", "admin", "password")
 	err := client.Login()
 	assert.Error(t, err)
 }
-
-func TestClient_Logout_Success(t *testing.T) {
-	loginCalled := false
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
