@@ -50,6 +50,8 @@ func Load() (*Config, error) {
 		APIBasePath: envStr("API_BASE_PATH", "/api/v2"),
 	}
 
+	// DS_HOST defaults to localhost which is fine for local dev, but
+	// in practice I always set this explicitly so this check is a good safety net.
 	if cfg.DSHost == "" {
 		return nil, fmt.Errorf("DS_HOST must not be empty")
 	}
@@ -57,6 +59,12 @@ func Load() (*Config, error) {
 	// Validate that DSName is set; an empty database name will cause confusing errors downstream.
 	if cfg.DSName == "" {
 		return nil, fmt.Errorf("DS_NAME must not be empty")
+	}
+
+	// Also require DSUser to be set — connecting without a username tends to
+	// fail in non-obvious ways depending on the pg_hba.conf setup.
+	if cfg.DSUser == "" {
+		return nil, fmt.Errorf("DS_USER must not be empty")
 	}
 
 	return cfg, nil
