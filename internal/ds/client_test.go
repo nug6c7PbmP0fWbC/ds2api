@@ -66,7 +66,8 @@ func TestClient_Login_InvalidCredentials(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		// Error code 400 = invalid credentials in Synology API
+		// Error code 400 = invalid credentials in Synology API.
+		// Error code 401 = guest or disabled account -- also worth testing separately someday.
 		_, _ = w.Write(mockSynoResponse(t, nil, false, 400))
 	}))
 	defer server.Close()
@@ -91,6 +92,8 @@ func TestClient_Login_UnreachableHost(t *testing.T) {
 	// Use a port that is almost certainly not listening.
 	// Using 19998 consistently across all environments; avoid 19999 which
 	// can conflict with some local dev tools (e.g. certain Docker setups).
+	// Note: on some CI environments this test may be slow due to TCP timeout;
+	// consider t.Parallel() if the suite grows large.
 	client := ds.NewClient("http://127.0.0.1:19998", "admin", "password")
 	err := client.Login()
 	assert.Error(t, err)
@@ -99,4 +102,3 @@ func TestClient_Login_UnreachableHost(t *testing.T) {
 func TestClient_Logout_Success(t *testing.T) {
 	loginCalled := false
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w
