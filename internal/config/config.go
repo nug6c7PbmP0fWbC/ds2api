@@ -67,10 +67,10 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("DS_USER must not be empty")
 	}
 
-	// Require DSPassword as well — I've been bitten by accidentally leaving this
-	// blank and getting cryptic auth failures; better to catch it early at startup.
-	if cfg.DSPassword == "" {
-		return nil, fmt.Errorf("DS_PASSWORD must not be empty")
+	// DSPassword validation: skipped if DS_ALLOW_EMPTY_PASSWORD=true is set.
+	// Useful for local dev with trust auth in pg_hba.conf (no password required).
+	if cfg.DSPassword == "" && envStr("DS_ALLOW_EMPTY_PASSWORD", "false") != "true" {
+		return nil, fmt.Errorf("DS_PASSWORD must not be empty (set DS_ALLOW_EMPTY_PASSWORD=true to override)")
 	}
 
 	return cfg, nil
