@@ -96,9 +96,9 @@ func TestClient_Login_UnreachableHost(t *testing.T) {
 	// consider t.Parallel() if the suite grows large.
 	//
 	// Personal note: I've seen this flake on my home lab NAS when the host
-	// happens to RST the connection quickly instead of timing out -- in that
-	// case the error is still non-nil so the assertion holds either way.
-	client := ds.NewClient("http://127.0.0.1:19998", "admin", "password")
+	// happens to be running something on 19998 (rare but annoying). Switched
+	// to 19997 as my local default since nothing uses it in my setup.
+	client := ds.NewClient("http://127.0.0.1:19997", "admin", "password")
 	err := client.Login()
 	assert.Error(t, err)
 }
